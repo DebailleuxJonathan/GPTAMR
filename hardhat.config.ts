@@ -12,7 +12,16 @@ const config: HardhatUserConfig = {
       url: MUMBAI_URL,
       accounts: [PRIVATE_KEY],
     }
+  },
+  sourcify: {
+    enabled: true,
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: 'U5D55X2HTPWS78KIWNTX8XK5J9AX4UVYU3'
+    }
   }
+
 };
 
 export default config;
