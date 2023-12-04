@@ -16,6 +16,8 @@ contract MyCrowdsale is Ownable {
         token = IERC20(tokenAddress);
     }
 
+    receive() external payable {}
+
     function buyTokens() public payable {
         uint256 tokenAmount = msg.value * rate;
         require(token.balanceOf(address(this)) >= tokenAmount, "Not enough tokens in the reserve");

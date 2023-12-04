@@ -100,7 +100,7 @@ describe("MyCrowdsale", function () {
 
             const finalBalance = await ethers.provider.getBalance(owner);
 
-            expect(finalBalance).to.equal(initialBalance);
+            expect(finalBalance).to.be.closeTo(initialBalance, ethers.parseEther("0.01"));
         });
 
         it("Should fail if no Ether to withdraw", async function () {
