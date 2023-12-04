@@ -1,15 +1,16 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "dotenv/config"
 
+const MUMBAI_URL = process.env.MUMBAI_URL || ""
+const PRIVATE_KEY = process.env.PRIVATE_KEY || ""
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
     mumbai: {
       chainId: 80001,
-      url: `https://polygon-testnet.public.blastapi.io/0xD1C1dC47F3973dC1924E91081509aa32F69c9CaE`,
-      accounts: {
-        mnemonic: "delay daring people engage goat ghost because elder worry cluster asset ball",
-      }
+      url: MUMBAI_URL,
+      accounts: [PRIVATE_KEY],
     }
   }
 };
