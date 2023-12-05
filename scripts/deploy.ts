@@ -6,8 +6,13 @@ async function main() {
   const MyToken = await ethers.getContractFactory("MyToken");
   const token  = await MyToken.deploy();
 
+  const currentBlock = await ethers.provider.getBlock('latest');
+  const currentTime = currentBlock.timestamp;
+
+  const endTimestamp = currentTime + 86400;
+
   const MyCrowdsale = await ethers.getContractFactory("MyCrowdsale");
-  await MyCrowdsale.deploy(1, token.target, deployer.address);
+  await MyCrowdsale.deploy(1, token.target, deployer.address, endTimestamp);
 }
 
 main().catch((error) => {

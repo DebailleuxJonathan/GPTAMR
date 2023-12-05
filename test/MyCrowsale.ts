@@ -7,6 +7,7 @@ describe("MyCrowdsale", function () {
     let addr1: any;
     let addr2: any;
     let token: any;
+    let endTimestamp: number;
 
     beforeEach(async function () {
         [owner, addr1, addr2] = await ethers.getSigners();
@@ -15,8 +16,14 @@ describe("MyCrowdsale", function () {
         token = await Token.deploy();
 
         const MyCrowdsaleFactory = await ethers.getContractFactory("MyCrowdsale");
+        const currentBlock = await ethers.provider.getBlock('latest');
+        const currentTime = currentBlock.timestamp;
 
-        myCrowdsale = await MyCrowdsaleFactory.deploy(1, token.target, owner.address);
+        endTimestamp = currentTime + 86400;
+
+        console.log(endTimestamp)
+
+        myCrowdsale = await MyCrowdsaleFactory.deploy(1, token.target, owner.address, endTimestamp);
 
         await token.transfer(await myCrowdsale.getAddress(), 100);
     });
@@ -32,6 +39,10 @@ describe("MyCrowdsale", function () {
 
         it("Should set the correct token address", async function () {
             expect(await myCrowdsale.token()).to.equal(token.target);
+        });
+
+        it("Should set the correct end timestamp", async function () {
+            expect(await myCrowdsale.endTimestamp()).to.equal(endTimestamp);
         });
     });
 
@@ -57,6 +68,8 @@ describe("MyCrowdsale", function () {
     describe("withdrawTokens", function () {
         it("Should withdraw remaining tokens to the owner", async function () {
             const initialBalance = await token.balanceOf(owner);
+            await ethers.provider.send("evm_increaseTime", [86400 + 1]);
+            await ethers.provider.send("evm_mine");
 
             expect(initialBalance).to.equal(900);
 
@@ -70,11 +83,16 @@ describe("MyCrowdsale", function () {
             expect(remainingTokens).to.equal(0);
         });
 
+        it("Should fail to withdraw Tokens before endTimestamp", async function () {
+            // Attempt to withdraw Ether before endTimestamp
+            await expect(myCrowdsale.withdrawEther()).to.be.revertedWith("Crowdsale not yet ended");
+        });
+
         it("Should fail if no tokens to withdraw", async function () {
-            const value = 100
-
+            const value = 100;
+            await ethers.provider.send("evm_increaseTime", [86400 + 1]);
+            await ethers.provider.send("evm_mine");
             await myCrowdsale.connect(addr1).buyTokens({ value });
-
             await expect(myCrowdsale.withdrawTokens()).to.be.revertedWith("No tokens to withdraw");
         });
     });
@@ -82,6 +100,8 @@ describe("MyCrowdsale", function () {
     describe("withdrawEther", function () {
         it("Should withdraw remaining Ether to the owner", async function () {
             const initialBalance = await ethers.provider.getBalance(owner);
+            await ethers.provider.send("evm_increaseTime", [86400 + 1]);
+            await ethers.provider.send("evm_mine");
 
             console.log('initialBalance : ', initialBalance)
             const contractAddress = await myCrowdsale.getAddress()
@@ -103,7 +123,14 @@ describe("MyCrowdsale", function () {
             expect(finalBalance).to.be.closeTo(initialBalance, ethers.parseEther("0.01"));
         });
 
+        it("Should fail to withdraw Ether before endTimestamp", async function () {
+            // Attempt to withdraw Ether before endTimestamp
+            await expect(myCrowdsale.withdrawEther()).to.be.revertedWith("Crowdsale not yet ended");
+        });
+
         it("Should fail if no Ether to withdraw", async function () {
+            await ethers.provider.send("evm_increaseTime", [86400 + 1]);
+            await ethers.provider.send("evm_mine");
             await expect(myCrowdsale.withdrawEther()).to.be.revertedWith("No Ether to withdraw");
         });
     });

@@ -9,11 +9,14 @@ contract MyCrowdsale is Ownable {
 
     IERC20 public token;
     uint256 public rate;
+    uint256 public endTimestamp;
 
-    constructor(uint256 _rate, address tokenAddress, address initialOwner) Ownable(initialOwner) {
+    constructor(uint256 _rate, address tokenAddress, address initialOwner, uint256 _endTimestamp) Ownable(initialOwner) {
         require(_rate > 0, "Rate is 0");
+        require(_endTimestamp > block.timestamp, "End timestamp must be in the future");
         rate = _rate;
         token = IERC20(tokenAddress);
+        endTimestamp = _endTimestamp;
     }
 
     receive() external payable {}
@@ -26,6 +29,7 @@ contract MyCrowdsale is Ownable {
     }
 
     function withdrawTokens() public onlyOwner {
+        require(block.timestamp > endTimestamp, "Crowdsale not yet ended");
         uint256 remainingTokens = token.balanceOf(address(this));
         require(remainingTokens > 0, "No tokens to withdraw");
 
@@ -33,6 +37,7 @@ contract MyCrowdsale is Ownable {
     }
 
     function withdrawEther() public onlyOwner {
+        require(block.timestamp > endTimestamp, "Crowdsale not yet ended");
         uint256 balance = address(this).balance;
         require(balance > 0, "No Ether to withdraw");
 
